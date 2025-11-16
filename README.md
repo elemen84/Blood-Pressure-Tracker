@@ -2,7 +2,7 @@
 
 A Discord bot designed to track, analyze, and visualize blood pressure data using Python, `discord.py`, SQLite, `pandas`, and `matplotlib`.
 
-## ⚙Setup and Installation
+## Setup and Installation
 
 1.  **Clone the repository:**
     ```bash
