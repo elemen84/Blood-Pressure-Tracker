@@ -10,3 +10,6 @@ __pycache__/
 
 # Database
 blood_pressure.db
+
+commands/__pycache__/
+

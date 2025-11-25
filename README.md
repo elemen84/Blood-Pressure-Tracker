@@ -54,8 +54,11 @@ The bot uses the prefix `!` for all commands.
 
 ## Scheduled Tasks
 
-* **Daily Alert:** Checks the average blood pressure over the last 10 days at **8:00 AM** (Europe/Madrid time). If the average exceeds **135/85** mmHg, it posts an alert and a graph to the configured `ALERT_CHANNEL_ID`.
+* **Daily Alert:** Checks the average blood pressure over the last 10 days at **8:00 AM** (Europe/Madrid time).  
+  - If the average exceeds **135/85** mmHg, it posts an alert and a graph to the configured `ALERT_CHANNEL_ID`.  
+  - If the average is below **90/60** mmHg, it also posts a low-pressure alert and a graph.
 * **Daily Backup:** Creates a backup of the `blood_pressure.db` file in the `./backup` directory and cleans up old backups (keeps the last 7).
+
 
 ---
 

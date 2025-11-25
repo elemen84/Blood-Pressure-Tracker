@@ -1,7 +1,6 @@
 import sys
 import blood_pressure_bot
 
-
 def main():
     """Initializes the database, sets up scheduled tasks, and runs the Discord bot."""
 
