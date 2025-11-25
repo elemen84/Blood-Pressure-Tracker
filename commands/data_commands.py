@@ -2,6 +2,7 @@ from discord.ext import commands
 from datetime import timedelta
 import numpy as np
 import discord
+import pandas as pd
 
 from db import load_data
 from utils import get_local_time, logger
@@ -98,6 +99,116 @@ class DataCommands(commands.Cog):
         else:
             await ctx.send(message)
 
+    # --- TOTAL STATISTICS COMMAND ---
+    @commands.command(name='total', aliases=['stats', 'estadisticas'],
+                      help='Shows monthly statistics by time slots with totals and percentages')
+    async def total_stats(self, ctx):
+        """Shows monthly statistics by time slots"""
+        try:
+            df = load_data()
+            if df.empty:
+                await ctx.send("📊 No blood pressure data recorded.")
+                return
+
+            # Use existing 'time_slot' column
+            if 'time_slot' not in df.columns:
+                await ctx.send("❌ **Error:** 'time_slot' column not found in data.")
+                return
+
+            # Convert 'day' to datetime if needed
+            df['day'] = pd.to_datetime(df['day'])
+            df['month'] = df['day'].dt.to_period('M')
+
+            # Create pivot table using existing time_slot
+            pivot_table = pd.pivot_table(
+                df,
+                values='systolic',
+                index='month',
+                columns='time_slot',
+                aggfunc='count',
+                fill_value=0
+            )
+
+            # Ensure all time slots are present
+            for time_slot in ['morning', 'afternoon', 'night']:
+                if time_slot not in pivot_table.columns:
+                    pivot_table[time_slot] = 0
+
+            # Reorder columns
+            pivot_table = pivot_table[['morning', 'afternoon', 'night']]
+
+            # Calculate monthly total
+            pivot_table['total'] = pivot_table.sum(axis=1)
+
+            # Sort by month (newest first)
+            pivot_table = pivot_table.sort_index(ascending=False)
+
+            # Calculate overall totals
+            total_readings = pivot_table['total'].sum()
+            total_morning = pivot_table['morning'].sum()
+            total_afternoon = pivot_table['afternoon'].sum()
+            total_night = pivot_table['night'].sum()
+
+            # Create formatted table - ONLY PERCENTAGES IN TOTAL LINE
+            table_data = []
+            table_data.append("📊 **READINGS STATISTICS BY MONTH**")
+            table_data.append("```")
+            # Headers
+            table_data.append("Month      |  Morning | Afternoon|  Night   | Total")
+            table_data.append("-----------|----------|----------|----------|----------")
+
+            for month, row in pivot_table.iterrows():
+                month_str = str(month).replace('-', ' ')
+
+                # NO percentages in monthly lines - just counts
+                table_data.append(
+                    f"{month_str:10} | {row['morning']:>7}  | "
+                    f"{row['afternoon']:>9}| "
+                    f"{row['night']:>8} | {row['total']:>5}"
+                )
+
+            table_data.append("-----------|----------|----------|----------|----------")
+
+            # Calculate overall percentages
+            morning_pct_total = (total_morning / total_readings * 100) if total_readings > 0 else 0
+            afternoon_pct_total = (total_afternoon / total_readings * 100) if total_readings > 0 else 0
+            night_pct_total = (total_night / total_readings * 100) if total_readings > 0 else 0
+
+            # TOTAL line WITH percentages
+            table_data.append(
+                f"{'TOTAL':10} | {total_morning:>2} ({morning_pct_total:2.0f}%) | "
+                f"{total_afternoon:>2} ({afternoon_pct_total:2.0f}%) | "
+                f"{total_night:>2} ({night_pct_total:2.0f}%) | {total_readings:>5}"
+            )
+            table_data.append("```")
+
+            # Summary
+            table_data.append("**General Summary:**")
+            table_data.append(f"• **Total readings recorded:** {total_readings}")
+            table_data.append(
+                f"• **Time slot distribution:** 🌅 Morning: {total_morning} ({morning_pct_total:.1f}%) | 🌞 Afternoon: {total_afternoon} ({afternoon_pct_total:.1f}%) | 🌙 Night: {total_night} ({night_pct_total:.1f}%)")
+
+            message = '\n'.join(table_data)
+
+            # Check message length
+            if len(message) > 2000:
+                # Short message if too long
+                short_message = (
+                    f"📊 **READINGS STATISTICS BY MONTH**\n"
+                    f"**Total readings:** {total_readings}\n"
+                    f"🌅 Morning: {total_morning} ({morning_pct_total:.1f}%)\n"
+                    f"🌞 Afternoon: {total_afternoon} ({afternoon_pct_total:.1f}%)\n"
+                    f"🌙 Night: {total_night} ({night_pct_total:.1f}%)"
+                )
+                await ctx.send(short_message)
+            else:
+                await ctx.send(message)
+
+        except Exception as e:
+            logger.error(f"Error in !total command: {e}", exc_info=True)
+            await ctx.send("❌ **Error generating statistics.** Please try again.")
+
+
     # --- PERIOD (MONTH/YEAR) DATA TABLES ---
     @commands.command(name='data_month', help='Shows monthly blood pressure data table. Usage: !data_month <MM-YY>')
     async def data_month_table(self, ctx, month_str: str):
@@ -176,6 +287,16 @@ class DataCommands(commands.Cog):
                 "`!data_year_m <YY>` - Morning only\n"
                 "`!data_year_a <YY>` - Afternoon only\n"
                 "`!data_year_n <YY>` - Night only\n"
+            ),
+            inline=False
+        )
+
+        embed.add_field(
+            name="Statistics",
+            value=(
+                "`!total` - Estadísticas mensuales por franjas horarias\n"
+                "`!stats` - Alias para !total\n"
+                "`!estadisticas` - Alias en español\n"
             ),
             inline=False
         )
