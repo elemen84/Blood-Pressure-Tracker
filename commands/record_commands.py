@@ -113,7 +113,7 @@ class RecordCommands(commands.Cog):
             return
 
         # Sort by record_date (timestamp) for true last record order
-        df_last = df.sort_values('record_date', ascending=False).head(count)
+        df_last = df.sort_values('record_date', ascending=True).head(count)
         df_last['day_str'] = df_last['day'].dt.strftime('%d/%m/%y')
 
         if df_last.empty:
@@ -207,7 +207,7 @@ class RecordCommands(commands.Cog):
             return
 
         # Get the actual last record by record_date
-        last_record = df.sort_values('record_date', ascending=False).iloc[0]
+        last_record = df.sort_values('record_date', ascending=True).iloc[0]
 
         slot_short = {'morning': 'm', 'afternoon': 'a', 'night': 'n'}
         slot_s = slot_short.get(last_record['time_slot'], '?')

@@ -59,7 +59,7 @@ class DataCommands(commands.Cog):
 
         # Calculate daily averages
         df_daily = df_period.groupby('day')[['systolic', 'diastolic']].mean().round(1).reset_index()
-        df_daily = df_daily.sort_values('day', ascending=False)
+        df_daily = df_daily.sort_values('day', ascending=True)
 
         if df_daily.empty:
             await ctx.send(f"📊 No data to display for the last {days} days.")
@@ -141,7 +141,7 @@ class DataCommands(commands.Cog):
             pivot_table['total'] = pivot_table.sum(axis=1)
 
             # Sort by month (newest first)
-            pivot_table = pivot_table.sort_index(ascending=False)
+            pivot_table = pivot_table.sort_index(ascending=True)
 
             # Calculate overall totals
             total_readings = pivot_table['total'].sum()
@@ -339,7 +339,7 @@ class DataCommands(commands.Cog):
 
             # Calculate daily averages
             df_daily = df_period.groupby('day')[['systolic', 'diastolic']].mean().round(1).reset_index()
-            df_daily = df_daily.sort_values('day', ascending=False)
+            df_daily = df_daily.sort_values('day', ascending=True)
 
             if df_daily.empty:
                 await ctx.send(f"📊 No data to display for **{title_period}**")

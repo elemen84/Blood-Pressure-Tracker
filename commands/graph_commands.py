@@ -19,6 +19,7 @@ class GraphCommands(commands.Cog):
         self.slot_short = {'morning': 'm', 'afternoon': 'a', 'night': 'n'}
         self.color_sys = '#FF6B6B'
         self.color_dia = '#4ECDC4'
+        self.reference_color = '#FF4444'  # Color rojo para las líneas de referencia
 
     # --- GENERAL GRAPH (N DAYS) ---
     @commands.command(name='graph', help='Shows blood pressure trend for last N days. Usage: !graph <days>')
@@ -51,6 +52,10 @@ class GraphCommands(commands.Cog):
             ax.plot(df_daily['day'], df_daily['diastolic'], marker='s', linestyle='-',
                     label='Diastolic', alpha=0.8, color=self.color_dia, linewidth=2.5, markersize=6)
 
+            # AÑADIR LÍNEAS DE REFERENCIA
+            ax.axhline(y=140, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
+            ax.axhline(y=90, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
+
             # Format x-axis
             date_format = mdates.DateFormatter('%d %b')
             ax.xaxis.set_major_formatter(date_format)
@@ -71,12 +76,6 @@ class GraphCommands(commands.Cog):
             ax.legend()
             ax.grid(False)  # Grid desactivado
             ax.tick_params(axis='x', rotation=45)
-
-            # QUITAMOS las líneas de referencia
-            # ax.axhline(y=120, color='green', linestyle='--', alpha=0.5, label='Normal SYS')
-            # ax.axhline(y=80, color='green', linestyle='--', alpha=0.5, label='Normal DIA')
-            # ax.axhline(y=140, color='red', linestyle='--', alpha=0.5, label='High SYS')
-            # ax.axhline(y=90, color='red', linestyle='--', alpha=0.5, label='High DIA')
 
             plt.tight_layout()
             buffer = io.BytesIO()
@@ -135,6 +134,10 @@ class GraphCommands(commands.Cog):
                     label='Systolic', alpha=0.8, color=self.color_sys, linewidth=2.5, markersize=6)
             ax.plot(df_slot['day'], df_slot['diastolic'], marker='s', linestyle='-',
                     label='Diastolic', alpha=0.8, color=self.color_dia, linewidth=2.5, markersize=6)
+
+            # AÑADIR LÍNEAS DE REFERENCIA
+            ax.axhline(y=140, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
+            ax.axhline(y=90, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
 
             ax.set_title(f"Blood Pressure - {self.slot_display[slot]} Slot ({days} Days)", fontsize=14,
                          fontweight='bold')
@@ -290,6 +293,10 @@ class GraphCommands(commands.Cog):
                     color=self.color_sys, linewidth=2.5, markersize=6)
             ax.plot(df_daily['day'], df_daily['diastolic'], marker='s', label='Diastolic',
                     color=self.color_dia, linewidth=2.5, markersize=6)
+
+            # AÑADIR LÍNEAS DE REFERENCIA
+            ax.axhline(y=140, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
+            ax.axhline(y=90, color=self.reference_color, linestyle='--', alpha=0.7, linewidth=1)
 
             # Title construction
             title_slot = f" - {self.slot_display[slot]}" if slot else ""
